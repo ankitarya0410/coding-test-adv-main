@@ -1,0 +1,26 @@
+.arrows-wrapper {
+  margin: 40px auto;
+
+  .arrow-button {
+    border: none;
+    outline: none;
+    background: transparent;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 24px;
+    margin: 0 10px;
+
+    &.disabled {
+      cursor: default;
+      opacity: 0.3;
+
+      &:hover {
+        transform: none !important;
+      }
+    }
+
+    &:hover {
+      transform: scale(1.5);
+    }
+  }
+}
