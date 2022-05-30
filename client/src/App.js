@@ -1,24 +1,68 @@
-import logo from './logo.svg';
+import React, { useEffect, useState } from 'react';
+import { AppProvider } from './context';
 import './App.css';
+import axios from 'axios';
+import Carousal from './carousal/Carousal';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSpinner } from '@fortawesome/free-solid-svg-icons';
 
-function App() {
+
+const App = () => {
+
+  const [ data, setData ] = useState({});
+  const [ labels, setLabels ] = useState([]);
+  const [ loading, setLoading ] = useState(false);
+
+  const getImages = async (token) => {
+    setLoading(true);
+    const url = 'http://localhost:3000/auth/images';
+    const config = {
+      headers: { 'Authorization': `Basic ${token}`}
+    }
+    const images = await axios.get(url, config);
+    setData(images.data);
+  }
+
+  useEffect(() => {
+    if (!!data) {
+      const keys = Object.keys(data);
+      setLabels(keys);
+    }
+  }, [data])
+
+  const authenticateMe = async () => {
+    const url = 'http://localhost:3000/auth/';
+    const tokenData = await axios.get(url);
+    sessionStorage.setItem('accessToken', tokenData.data);
+    await getImages(tokenData.data);
+    setLoading(false);
+  }
+
+  const logMeOut = async () => {
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.clear();
+    window.location.reload(false);
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AppProvider>
+      <div className="App">
+        {!!loading ? (
+          <div className="loading">
+            <FontAwesomeIcon className="loading-icon" icon={faSpinner} />
+          </div>
+        ) : (
+          <React.Fragment>
+            {!!data && !!labels && labels.length > 0 ? (
+              <React.Fragment>
+                <button className="user-action-button" onClick={() => logMeOut()}>Logout</button>
+                <Carousal labels={labels} images={data} />
+              </React.Fragment>
+            ) : ( <button className="user-action-button" onClick={() => authenticateMe()}>Authenticate me!</button> )}
+          </React.Fragment>
+        )}
+      </div>
+    </AppProvider>
   );
 }
 
